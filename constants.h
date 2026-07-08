@@ -11,6 +11,9 @@ constexpr int ROWS = 24;
 // Block size in pixels
 constexpr int BLOCK_SIZE = 25;
 
+// Margin around the play area for the border frame
+constexpr int BOARD_MARGIN = 6;
+
 // Preview area dimensions (in blocks) — largest piece is 4×4
 constexpr int NEXT_COLS = 4;
 constexpr int NEXT_ROWS = 4;
@@ -37,19 +40,15 @@ namespace Points {
     constexpr int HARD_DROP = 2;
 }
 
-// Level threshold: every 1000 points = +1 level
-constexpr int LEVEL_THRESHOLD = 1000;
+// Speed increases as score grows: every SPEED_SCORE_STEP points,
+// drop interval decreases by SPEED_INCREMENT ms
+constexpr int SPEED_SCORE_STEP = 1000;
+constexpr int INITIAL_SPEED    = 800;
+constexpr int SPEED_INCREMENT  = 50;
+constexpr int MIN_SPEED        = 100;
 
-// Drop speed (milliseconds)
-constexpr int INITIAL_SPEED = 800;
-constexpr int SPEED_INCREMENT = 50;   // faster by this much per level
-constexpr int MIN_SPEED = 100;
-
-// Difficulty presets
-namespace Difficulty {
-    constexpr int Regular   = 1000;
-
-    constexpr int Extreme   = 500;
-}
+// Difficulty presets (initial drop speed in ms)
+constexpr int REGULAR_INITIAL_SPEED = 800;
+constexpr int EXTREME_INITIAL_SPEED = 500;
 
 #endif // CONSTANTS_H

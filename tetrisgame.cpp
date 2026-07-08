@@ -238,7 +238,7 @@ int TetrisGame::clearLines()
     return cleared;
 }
 
-void TetrisGame::updateScoreAndLevel(int cleared)
+void TetrisGame::updateScoreAndSpeed(int cleared)
 {
     if (cleared <= 0) return;
 
@@ -249,24 +249,20 @@ void TetrisGame::updateScoreAndLevel(int cleared)
     case 3: lineScore = Points::TRIPLE; break;
     case 4: lineScore = Points::TETRIS; break;
     }
-    m_score += lineScore * m_level;
+    m_score += lineScore;
     m_linesCleared += cleared;
 
-    // Level-up check
-    int newLevel = m_score / LEVEL_THRESHOLD + 1;
-    if (newLevel > m_level) {
-        m_level = newLevel;
-        m_dropSpeed = std::max(MIN_SPEED,
-                               m_initialSpeed - (m_level - 1) * SPEED_INCREMENT);
-        emit levelChanged(m_level);
-    }
+    // Speed increases directly with score: every SPEED_SCORE_STEP points
+    // the drop interval decreases by SPEED_INCREMENT ms
+    m_dropSpeed = std::max(MIN_SPEED,
+                           m_initialSpeed - (m_score / SPEED_SCORE_STEP) * SPEED_INCREMENT);
     emit scoreChanged(m_score);
 }
 
 void TetrisGame::handlePostLock()
 {
     int cleared = clearLines();
-    updateScoreAndLevel(cleared);
+    updateScoreAndSpeed(cleared);
 
     // Advance to next piece
     m_currentPiece = m_nextPiece;
@@ -308,7 +304,6 @@ void TetrisGame::start()
 {
     m_board = createEmptyBoard();
     m_score = 0;
-    m_level = 1;
     m_linesCleared = 0;
     m_dropSpeed = m_initialSpeed;
     m_gameOver = false;
@@ -319,7 +314,6 @@ void TetrisGame::start()
     m_nextPiece = getRandomPiece();
 
     emit scoreChanged(m_score);
-    emit levelChanged(m_level);
     emit nextPieceChanged();
     emit stateChanged();
 }

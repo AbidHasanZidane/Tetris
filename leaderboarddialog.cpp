@@ -28,13 +28,12 @@ LeaderboardDialog::LeaderboardDialog(ScoreDatabase *db, QWidget *parent)
     layout->addWidget(title);
 
     // Table
-    m_table = new QTableWidget(0, 5, this);
-    m_table->setHorizontalHeaderLabels({"#", "Score", "Level", "Lines", "Date"});
+    m_table = new QTableWidget(0, 4, this);
+    m_table->setHorizontalHeaderLabels({"#", "Score", "Lines", "Date"});
     m_table->horizontalHeader()->setStretchLastSection(true);
     m_table->horizontalHeader()->setSectionResizeMode(0, QHeaderView::ResizeToContents);
     m_table->horizontalHeader()->setSectionResizeMode(1, QHeaderView::Stretch);
     m_table->horizontalHeader()->setSectionResizeMode(2, QHeaderView::Stretch);
-    m_table->horizontalHeader()->setSectionResizeMode(3, QHeaderView::Stretch);
     m_table->verticalHeader()->setVisible(false);
     m_table->setEditTriggers(QAbstractItemView::NoEditTriggers);
     m_table->setSelectionMode(QAbstractItemView::NoSelection);
@@ -83,17 +82,13 @@ void LeaderboardDialog::refresh()
         scoreItem->setTextAlignment(Qt::AlignCenter);
         m_table->setItem(i, 1, scoreItem);
 
-        auto *levelItem = new QTableWidgetItem(QString::number(entry.level));
-        levelItem->setTextAlignment(Qt::AlignCenter);
-        m_table->setItem(i, 2, levelItem);
-
         auto *linesItem = new QTableWidgetItem(QString::number(entry.lines));
         linesItem->setTextAlignment(Qt::AlignCenter);
-        m_table->setItem(i, 3, linesItem);
+        m_table->setItem(i, 2, linesItem);
 
         QString dateStr = entry.date.toString("yyyy-MM-dd  hh:mm");
         auto *dateItem = new QTableWidgetItem(dateStr);
         dateItem->setTextAlignment(Qt::AlignCenter);
-        m_table->setItem(i, 4, dateItem);
+        m_table->setItem(i, 3, dateItem);
     }
 }

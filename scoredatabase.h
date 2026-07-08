@@ -7,7 +7,6 @@
 
 struct ScoreEntry {
     int score;
-    int level;
     int lines;
     QDateTime date;
 };
@@ -20,7 +19,7 @@ public:
     explicit ScoreDatabase(QObject *parent = nullptr);
 
     bool init();
-    bool addScore(int score, int level, int lines);
+    bool addScore(int score, int lines);
     QVector<ScoreEntry> topScores(int limit = 20) const;
     void clearAll();
 

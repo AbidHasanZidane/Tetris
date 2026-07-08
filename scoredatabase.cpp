@@ -28,11 +28,25 @@ bool ScoreDatabase::init()
     }
 
     QSqlQuery query(db);
+
+    // Drop old table if it still has the "level" column from the previous schema
+    query.exec("PRAGMA table_info(scores)");
+    bool hasLevelColumn = false;
+    while (query.next()) {
+        if (query.value(1).toString() == "level") {
+            hasLevelColumn = true;
+            break;
+        }
+    }
+    if (hasLevelColumn) {
+        qDebug() << "Migrating old scores table (removing level column)...";
+        query.exec("DROP TABLE scores");
+    }
+
     bool ok = query.exec(
         "CREATE TABLE IF NOT EXISTS scores ("
         "  id    INTEGER PRIMARY KEY AUTOINCREMENT,"
         "  score INTEGER NOT NULL,"
-        "  level INTEGER NOT NULL,"
         "  lines INTEGER NOT NULL,"
         "  date  TEXT    NOT NULL"
         ")"
@@ -46,16 +60,15 @@ bool ScoreDatabase::init()
     return true;
 }
 
-bool ScoreDatabase::addScore(int score, int level, int lines)
+bool ScoreDatabase::addScore(int score, int lines)
 {
     QSqlDatabase db = QSqlDatabase::database();
     QSqlQuery query(db);
     query.prepare(
-        "INSERT INTO scores (score, level, lines, date) "
-        "VALUES (:score, :level, :lines, :date)"
+        "INSERT INTO scores (score, lines, date) "
+        "VALUES (:score, :lines, :date)"
     );
     query.bindValue(":score", score);
-    query.bindValue(":level", level);
     query.bindValue(":lines", lines);
     query.bindValue(":date", QDateTime::currentDateTime().toString(Qt::ISODate));
 
@@ -73,7 +86,7 @@ QVector<ScoreEntry> ScoreDatabase::topScores(int limit) const
     QSqlDatabase db = QSqlDatabase::database();
     QSqlQuery query(db);
     query.prepare(
-        "SELECT score, level, lines, date "
+        "SELECT score, lines, date "
         "FROM scores "
         "ORDER BY score DESC "
         "LIMIT :limit"
@@ -88,9 +101,8 @@ QVector<ScoreEntry> ScoreDatabase::topScores(int limit) const
     while (query.next()) {
         ScoreEntry entry;
         entry.score = query.value(0).toInt();
-        entry.level = query.value(1).toInt();
-        entry.lines = query.value(2).toInt();
-        entry.date  = QDateTime::fromString(query.value(3).toString(), Qt::ISODate);
+        entry.lines = query.value(1).toInt();
+        entry.date  = QDateTime::fromString(query.value(2).toString(), Qt::ISODate);
         results.append(entry);
     }
     return results;

@@ -11,14 +11,14 @@ TetrisBoard::TetrisBoard(TetrisGame *game, NextPieceWidget *preview,
     , m_preview(preview)
     , m_timer(new QTimer(this))
 {
-    setFixedSize(COLS * BLOCK_SIZE, ROWS * BLOCK_SIZE);
+    setFixedSize(COLS * BLOCK_SIZE + 2 * BOARD_MARGIN,
+                 ROWS * BLOCK_SIZE + 2 * BOARD_MARGIN);
     setFocusPolicy(Qt::StrongFocus);
     setStyleSheet("background-color: #1a1a1a;");
 
     // Connect game signals to local slots / forwarding
     connect(m_game, &TetrisGame::stateChanged,   this, QOverload<>::of(&QWidget::update));
     connect(m_game, &TetrisGame::scoreChanged,   this, &TetrisBoard::scoreUpdated);
-    connect(m_game, &TetrisGame::levelChanged,   this, &TetrisBoard::levelUpdated);
     connect(m_game, &TetrisGame::gameOver,       this, &TetrisBoard::onGameOver);
     connect(m_game, &TetrisGame::nextPieceChanged, this, [this]() {
         if (m_preview) m_preview->setPiece(m_game->nextPiece());
@@ -64,15 +64,19 @@ void TetrisBoard::keyPressEvent(QKeyEvent *event)
 
     switch (event->key()) {
     case Qt::Key_Left:
+    case Qt::Key_A:
         m_game->moveLeft();
         break;
     case Qt::Key_Right:
+    case Qt::Key_D:
         m_game->moveRight();
         break;
     case Qt::Key_Down:
+    case Qt::Key_S:
         m_game->softDrop();
         break;
     case Qt::Key_Up:
+    case Qt::Key_W:
         m_game->rotate();
         break;
     case Qt::Key_Space:
@@ -103,6 +107,13 @@ void TetrisBoard::paintEvent(QPaintEvent * /*event*/)
     QPainter painter(this);
     painter.setRenderHint(QPainter::Antialiasing, false);
 
+    // Draw the outer frame first (widget coordinates)
+    drawBorder(painter);
+
+    // Shift into board coordinates so game content sits inside the margin
+    painter.save();
+    painter.translate(BOARD_MARGIN, BOARD_MARGIN);
+
     drawGrid(painter);
     drawBoard(painter);
 
@@ -112,6 +123,9 @@ void TetrisBoard::paintEvent(QPaintEvent * /*event*/)
         drawPiece(painter);
     }
 
+    painter.restore();
+
+    // Overlays cover the full widget
     if (m_game->isPaused())
         drawPauseOverlay(painter);
 
@@ -201,6 +215,23 @@ void TetrisBoard::drawGhostPiece(QPainter &painter)
             }
         }
     }
+}
+
+void TetrisBoard::drawBorder(QPainter &painter)
+{
+    constexpr int T = 4;   // frame thickness
+
+    // The board area sits inside BOARD_MARGIN
+    int x = BOARD_MARGIN;
+    int y = BOARD_MARGIN;
+    int w = COLS * BLOCK_SIZE;
+    int h = ROWS * BLOCK_SIZE;
+
+    // Draw the frame just outside the board area
+    QPen pen(QColor("#555"), T);
+    painter.setPen(pen);
+    painter.setBrush(Qt::NoBrush);
+    painter.drawRect(x - T/2, y - T/2, w + T, h + T);
 }
 
 void TetrisBoard::drawGrid(QPainter &painter)

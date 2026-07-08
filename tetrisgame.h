@@ -27,9 +27,8 @@ public:
     const TetrisPiece &currentPiece() const { return m_currentPiece; }
     const TetrisPiece &nextPiece() const { return m_nextPiece; }
 
-    // Score / level / lines
+    // Score / lines
     int score() const { return m_score; }
-    int level() const { return m_level; }
     int linesCleared() const { return m_linesCleared; }
     int dropSpeed() const { return m_dropSpeed; }
     int ghostY() const;
@@ -52,7 +51,6 @@ signals:
     void stateChanged();             // emitted whenever the board/piece changes
     void gameOver(int finalScore);
     void scoreChanged(int score);
-    void levelChanged(int level);
     void nextPieceChanged();
 
 private:
@@ -62,7 +60,7 @@ private:
     bool isValidMove(const TetrisPiece &piece) const;
     void lockPiece();
     int  clearLines();
-    void updateScoreAndLevel(int linesCleared);
+    void updateScoreAndSpeed(int linesCleared);
     void handlePostLock();
 
     Board m_board;
@@ -70,7 +68,6 @@ private:
     TetrisPiece m_nextPiece;
 
     int m_score = 0;
-    int m_level = 1;
     int m_linesCleared = 0;
     int m_dropSpeed = INITIAL_SPEED;
     int m_initialSpeed = INITIAL_SPEED;

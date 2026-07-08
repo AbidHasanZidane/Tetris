@@ -17,12 +17,10 @@ public:
 
     void startGame();
     int  score() const { return m_game->score(); }
-    int  level() const { return m_game->level(); }
     int  linesCleared() const { return m_game->linesCleared(); }
 
 signals:
     void scoreUpdated(int score);
-    void levelUpdated(int level);
     void gameEnded(int finalScore);
     void pauseToggled(bool paused);
 
@@ -39,6 +37,7 @@ private:
     void drawBoard(QPainter &painter);
     void drawPiece(QPainter &painter);
     void drawGhostPiece(QPainter &painter);
+    void drawBorder(QPainter &painter);
     void drawGrid(QPainter &painter);
     void drawPauseOverlay(QPainter &painter);
     void drawStartOverlay(QPainter &painter);

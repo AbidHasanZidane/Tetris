@@ -112,7 +112,7 @@ int main(int argc, char *argv[])
     // -- Right side: info panel -----------------------------------------
     QVBoxLayout *rightLayout = new QVBoxLayout;
     rightLayout->setSpacing(10);
-    rightLayout->addSpacing(15);   // push the panel down
+    rightLayout->addSpacing(20);   // push the panel down
 
     // Next piece group
     QGroupBox *nextGroup = new QGroupBox("Next Piece");
@@ -203,34 +203,34 @@ int main(int argc, char *argv[])
     // ------------------------------------------------------------------
     // Connections
     // ------------------------------------------------------------------
-    QObject::connect(board, &TetrisBoard::scoreUpdated, scoreLabel,
-                     QOverload<int>::of(&QLabel::setNum));
+    QObject::connect(board, &TetrisBoard::scoreUpdated,
+                     [scoreLabel](int s) { scoreLabel->setNum(s); });
 
-    QObject::connect(board, &TetrisBoard::gameEnded, startBtn, [startBtn, modeBtn](int /*score*/) {
+    QObject::connect(board, &TetrisBoard::gameEnded, startBtn, [startBtn, modeBtn, leaderboardBtn](int /*score*/) {
         startBtn->setText("Retry");
         startBtn->setEnabled(true);
         modeBtn->setEnabled(true);
+        leaderboardBtn->setEnabled(true);
     });
 
     QObject::connect(board, &TetrisBoard::gameEnded, [board, scoreDb](int /*score*/) {
         int s = board->score();
         if (s > 0)
-            scoreDb->addScore(s, board->level(), board->linesCleared());
+            scoreDb->addScore(s, board->linesCleared());
     });
 
     QObject::connect(board, &TetrisBoard::pauseToggled,
-                     [startBtn, leaderboardBtn, modeBtn, soundBtn](bool paused) {
+                     [startBtn, soundBtn](bool paused) {
         startBtn->setEnabled(false);
-        leaderboardBtn->setEnabled(!paused);
-        modeBtn->setEnabled(!paused);
         soundBtn->setEnabled(!paused);
     });
 
-    QObject::connect(startBtn, &QPushButton::clicked, [board, startBtn, modeBtn]() {
+    QObject::connect(startBtn, &QPushButton::clicked, [board, startBtn, modeBtn, leaderboardBtn]() {
         board->startGame();
         startBtn->setText("Playing...");
         startBtn->setEnabled(false);
         modeBtn->setEnabled(false);
+        leaderboardBtn->setEnabled(false);
     });
 
     // Mode toggle: Regular ↔ Extreme
@@ -246,7 +246,7 @@ int main(int argc, char *argv[])
                 QPushButton:hover { background-color: #444; }
                 QPushButton:disabled { background-color: #555; color: #999; }
             )");
-            game->setInitialSpeed(Difficulty::Extreme);
+            game->setInitialSpeed(EXTREME_INITIAL_SPEED);
             game->setExtremeMode(true);
         } else {
             modeBtn->setText("Mode: Regular");
@@ -257,7 +257,7 @@ int main(int argc, char *argv[])
                 QPushButton:hover { background-color: #444; }
                 QPushButton:disabled { background-color: #555; color: #999; }
             )");
-            game->setInitialSpeed(Difficulty::Regular);
+            game->setInitialSpeed(REGULAR_INITIAL_SPEED);
             game->setExtremeMode(false);
         }
     });

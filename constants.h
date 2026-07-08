@@ -18,13 +18,13 @@ constexpr int NEXT_ROWS = 4;
 // Color palette (index 0 = empty, indices 1–7 = tetromino colors)
 const QVector<QColor> COLORS = {
     QColor(),                    // 0: empty
-    QColor("#FF0D72"),           // 1: I
-    QColor("#0DC2FF"),           // 2: L
-    QColor("#0DFF72"),           // 3: J
-    QColor("#F538FF"),           // 4: O
-    QColor("#FF8E0D"),           // 5: T
-    QColor("#FFE138"),           // 6: S
-    QColor("#3877FF")            // 7: Z
+    QColor("#00BFFF"),           // 1: I — sky blue
+    QColor("#FF8C00"),           // 2: L — dark orange
+    QColor("#1E90FF"),           // 3: J — dodger blue
+    QColor("#FFD700"),           // 4: O — gold
+    QColor("#9932CC"),           // 5: T — dark orchid
+    QColor("#00CC66"),           // 6: S — retro green
+    QColor("#FF3333")            // 7: Z — retro red
 };
 
 // Scoring
@@ -44,5 +44,12 @@ constexpr int LEVEL_THRESHOLD = 1000;
 constexpr int INITIAL_SPEED = 800;
 constexpr int SPEED_INCREMENT = 50;   // faster by this much per level
 constexpr int MIN_SPEED = 100;
+
+// Difficulty presets
+namespace Difficulty {
+    constexpr int Regular   = 1000;
+
+    constexpr int Extreme   = 500;
+}
 
 #endif // CONSTANTS_H

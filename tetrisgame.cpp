@@ -159,7 +159,6 @@ void TetrisGame::softDrop()
     test.y++;
     if (isValidMove(test)) {
         m_currentPiece.y++;
-        m_score += Points::SOFT_DROP;
         emit stateChanged();
     }
     // If it can't move down, we don't auto-lock here — the next tick handles it.
@@ -179,10 +178,20 @@ void TetrisGame::hardDrop()
             break;
         }
     }
-    m_score += rowsDropped * Points::HARD_DROP;
     lockPiece();
     handlePostLock();
     emit stateChanged();
+}
+
+int TetrisGame::ghostY() const
+{
+    TetrisPiece ghost = m_currentPiece;
+    while (true) {
+        ghost.y++;
+        if (!isValidMove(ghost)) {
+            return ghost.y - 1;
+        }
+    }
 }
 
 // ---------------------------------------------------------------------------
@@ -248,7 +257,7 @@ void TetrisGame::updateScoreAndLevel(int cleared)
     if (newLevel > m_level) {
         m_level = newLevel;
         m_dropSpeed = std::max(MIN_SPEED,
-                               INITIAL_SPEED - (m_level - 1) * SPEED_INCREMENT);
+                               m_initialSpeed - (m_level - 1) * SPEED_INCREMENT);
         emit levelChanged(m_level);
     }
     emit scoreChanged(m_score);
@@ -301,7 +310,7 @@ void TetrisGame::start()
     m_score = 0;
     m_level = 1;
     m_linesCleared = 0;
-    m_dropSpeed = INITIAL_SPEED;
+    m_dropSpeed = m_initialSpeed;
     m_gameOver = false;
     m_running = true;
     m_paused = false;

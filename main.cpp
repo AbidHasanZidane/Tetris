@@ -46,10 +46,10 @@ int main(int argc, char *argv[])
             color: white;
             border: none;
             border-radius: 4px;
-            padding: 8px 16px;
-            font-size: 14px;
+            padding: 6px 10px;
+            font-size: 13px;
             font-weight: bold;
-            min-width: 120px;
+            min-width: 100px;
         }
         QPushButton:hover {
             background-color: #388e3c;
@@ -112,11 +112,12 @@ int main(int argc, char *argv[])
     // -- Right side: info panel -----------------------------------------
     QVBoxLayout *rightLayout = new QVBoxLayout;
     rightLayout->setSpacing(10);
+    rightLayout->addSpacing(15);   // push the panel down
 
     // Next piece group
     QGroupBox *nextGroup = new QGroupBox("Next Piece");
     QVBoxLayout *nextLayout = new QVBoxLayout(nextGroup);
-    nextLayout->addWidget(preview);
+    nextLayout->addWidget(preview, 0, Qt::AlignCenter);
     rightLayout->addWidget(nextGroup);
 
     // Score
@@ -129,33 +130,71 @@ int main(int argc, char *argv[])
     scoreLayout->addWidget(scoreLabel);
     rightLayout->addWidget(scoreGroup);
 
-    // Level
-    QGroupBox *levelGroup = new QGroupBox("Level");
-    QVBoxLayout *levelLayout = new QVBoxLayout(levelGroup);
-    QLabel *levelLabel = new QLabel("1");
-    levelLabel->setFont(QFont("Arial", 22, QFont::Bold));
-    levelLabel->setStyleSheet("color: #ff9800;");
-    levelLabel->setAlignment(Qt::AlignCenter);
-    levelLayout->addWidget(levelLabel);
-    rightLayout->addWidget(levelGroup);
-
     // Buttons
     QPushButton *startBtn = new QPushButton("Start Game");
+    startBtn->setFocusPolicy(Qt::NoFocus);
+    rightLayout->addWidget(startBtn);
+
+    // --- Mode toggle (Regular / Extreme) ---
+    QPushButton *modeBtn = new QPushButton("Mode: Regular");
+    modeBtn->setObjectName("modeBtn");
+    modeBtn->setFocusPolicy(Qt::NoFocus);
+    rightLayout->addWidget(modeBtn);
+
+    // --- Sound toggle ---
+    QPushButton *soundBtn = new QPushButton("Sound: ON");
+    soundBtn->setObjectName("soundBtn");
+    soundBtn->setFocusPolicy(Qt::NoFocus);
+    rightLayout->addWidget(soundBtn);
+
+    // --- Leaderboard button ---
     QPushButton *leaderboardBtn = new QPushButton("Leaderboard");
     leaderboardBtn->setObjectName("leaderboardBtn");
-    rightLayout->addWidget(startBtn);
+    leaderboardBtn->setFocusPolicy(Qt::NoFocus);
     rightLayout->addWidget(leaderboardBtn);
 
-    // Controls help
+    // How to Play toggle
+    QPushButton *helpBtn = new QPushButton("How to Play");
+    helpBtn->setObjectName("helpBtn");
+    helpBtn->setFocusPolicy(Qt::NoFocus);
+    helpBtn->setStyleSheet(R"(
+        QPushButton#helpBtn {
+            background-color: #1565c0;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            padding: 6px 10px;
+            font-size: 12px;
+            font-weight: bold;
+            min-width: 100px;
+        }
+        QPushButton#helpBtn:hover {
+            background-color: #1976d2;
+        }
+        QPushButton#helpBtn:pressed {
+            background-color: #0d47a1;
+        }
+        QPushButton#helpBtn:disabled {
+            background-color: #555;
+            color: #999;
+        }
+    )");
+
     QLabel *controlsLabel = new QLabel(
-        QString::fromUtf8("← →  Move\n"
-                          "↑     Rotate\n"
-                          "↓     Soft Drop\n"
+        QString::fromUtf8("← →   Move\n"
+                          "↑      Rotate\n"
+                          "↓      Soft Drop\n"
                           "Space  Hard Drop\n"
-                          "P      Pause"));
+                          "Esc  Pause"));
     controlsLabel->setStyleSheet("color: #888; font-size: 11px;");
     controlsLabel->setAlignment(Qt::AlignCenter);
-    rightLayout->addSpacing(8);
+    controlsLabel->setVisible(false);
+
+    QObject::connect(helpBtn, &QPushButton::clicked, [controlsLabel]() {
+        controlsLabel->setVisible(!controlsLabel->isVisible());
+    });
+
+    rightLayout->addWidget(helpBtn);
     rightLayout->addWidget(controlsLabel);
 
     rightLayout->addStretch();
@@ -166,12 +205,11 @@ int main(int argc, char *argv[])
     // ------------------------------------------------------------------
     QObject::connect(board, &TetrisBoard::scoreUpdated, scoreLabel,
                      QOverload<int>::of(&QLabel::setNum));
-    QObject::connect(board, &TetrisBoard::levelUpdated, levelLabel,
-                     QOverload<int>::of(&QLabel::setNum));
 
-    QObject::connect(board, &TetrisBoard::gameEnded, startBtn, [startBtn](int /*score*/) {
+    QObject::connect(board, &TetrisBoard::gameEnded, startBtn, [startBtn, modeBtn](int /*score*/) {
         startBtn->setText("Retry");
         startBtn->setEnabled(true);
+        modeBtn->setEnabled(true);
     });
 
     QObject::connect(board, &TetrisBoard::gameEnded, [board, scoreDb](int /*score*/) {
@@ -180,15 +218,73 @@ int main(int argc, char *argv[])
             scoreDb->addScore(s, board->level(), board->linesCleared());
     });
 
-    QObject::connect(board, &TetrisBoard::pauseToggled, [startBtn, leaderboardBtn](bool paused) {
-        startBtn->setEnabled(false);          // always disabled while game is active
-        leaderboardBtn->setEnabled(!paused);  // disabled during pause
+    QObject::connect(board, &TetrisBoard::pauseToggled,
+                     [startBtn, leaderboardBtn, modeBtn, soundBtn](bool paused) {
+        startBtn->setEnabled(false);
+        leaderboardBtn->setEnabled(!paused);
+        modeBtn->setEnabled(!paused);
+        soundBtn->setEnabled(!paused);
     });
 
-    QObject::connect(startBtn, &QPushButton::clicked, [board, startBtn]() {
+    QObject::connect(startBtn, &QPushButton::clicked, [board, startBtn, modeBtn]() {
         board->startGame();
         startBtn->setText("Playing...");
         startBtn->setEnabled(false);
+        modeBtn->setEnabled(false);
+    });
+
+    // Mode toggle: Regular ↔ Extreme
+    QObject::connect(modeBtn, &QPushButton::clicked, [modeBtn, game]() {
+        static bool extreme = false;
+        extreme = !extreme;
+        if (extreme) {
+            modeBtn->setText("Mode: Extreme");
+            modeBtn->setStyleSheet(R"(
+                QPushButton { background-color: #333; color: #FF0D72; border: 1px solid #555;
+                    border-radius: 4px; padding: 6px 10px; font-size: 13px; font-weight: bold;
+                    min-width: 100px; }
+                QPushButton:hover { background-color: #444; }
+                QPushButton:disabled { background-color: #555; color: #999; }
+            )");
+            game->setInitialSpeed(Difficulty::Extreme);
+            game->setExtremeMode(true);
+        } else {
+            modeBtn->setText("Mode: Regular");
+            modeBtn->setStyleSheet(R"(
+                QPushButton { background-color: #333; color: #4caf50; border: 1px solid #555;
+                    border-radius: 4px; padding: 6px 10px; font-size: 13px; font-weight: bold;
+                    min-width: 100px; }
+                QPushButton:hover { background-color: #444; }
+                QPushButton:disabled { background-color: #555; color: #999; }
+            )");
+            game->setInitialSpeed(Difficulty::Regular);
+            game->setExtremeMode(false);
+        }
+    });
+
+    // Sound toggle (dummy — no actual audio)
+    QObject::connect(soundBtn, &QPushButton::clicked, [soundBtn]() {
+        static bool muted = false;
+        muted = !muted;
+        if (muted) {
+            soundBtn->setText("Sound: OFF");
+            soundBtn->setStyleSheet(R"(
+                QPushButton { background-color: #333; color: #888; border: 1px solid #555;
+                    border-radius: 4px; padding: 6px 10px; font-size: 13px; font-weight: bold;
+                    min-width: 100px; }
+                QPushButton:hover { background-color: #444; }
+                QPushButton:disabled { background-color: #555; color: #999; }
+            )");
+        } else {
+            soundBtn->setText("Sound: ON");
+            soundBtn->setStyleSheet(R"(
+                QPushButton { background-color: #333; color: #4caf50; border: 1px solid #555;
+                    border-radius: 4px; padding: 6px 10px; font-size: 13px; font-weight: bold;
+                    min-width: 100px; }
+                QPushButton:hover { background-color: #444; }
+                QPushButton:disabled { background-color: #555; color: #999; }
+            )");
+        }
     });
 
     QObject::connect(leaderboardBtn, &QPushButton::clicked, [leaderboardDlg]() {

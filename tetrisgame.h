@@ -32,6 +32,11 @@ public:
     int level() const { return m_level; }
     int linesCleared() const { return m_linesCleared; }
     int dropSpeed() const { return m_dropSpeed; }
+    int ghostY() const;
+
+    void setInitialSpeed(int ms) { m_initialSpeed = ms; }
+    void setExtremeMode(bool on) { m_extremeMode = on; }
+    bool isExtremeMode() const { return m_extremeMode; }
 
     // --- Actions (called from keyboard or UI) ---
     void moveLeft();
@@ -68,10 +73,12 @@ private:
     int m_level = 1;
     int m_linesCleared = 0;
     int m_dropSpeed = INITIAL_SPEED;
+    int m_initialSpeed = INITIAL_SPEED;
 
     bool m_running = false;
     bool m_paused = false;
     bool m_gameOver = false;
+    bool m_extremeMode = false;
 };
 
 #endif // TETRISGAME_H

@@ -36,9 +36,6 @@ void TetrisBoard::startGame()
     setFocus();   // grab keyboard focus
 }
 
-// ---------------------------------------------------------------------------
-// Game loop tick — re-sync timer interval in case level changed
-// ---------------------------------------------------------------------------
 
 void TetrisBoard::onTick()
 {
@@ -109,8 +106,11 @@ void TetrisBoard::paintEvent(QPaintEvent * /*event*/)
     drawGrid(painter);
     drawBoard(painter);
 
-    if (!m_game->isGameOver() && m_game->isRunning())
+    if (!m_game->isGameOver() && m_game->isRunning()) {
+        if (!m_game->isExtremeMode())
+            drawGhostPiece(painter);
         drawPiece(painter);
+    }
 
     if (m_game->isPaused())
         drawPauseOverlay(painter);
@@ -174,6 +174,35 @@ void TetrisBoard::drawPiece(QPainter &painter)
     }
 }
 
+void TetrisBoard::drawGhostPiece(QPainter &painter)
+{
+    const TetrisPiece &piece = m_game->currentPiece();
+    int ghostY = m_game->ghostY();
+
+    // Skip if ghost is at the same position as the piece
+    if (ghostY == piece.y) return;
+
+    QColor color = COLORS[piece.colorIndex];
+    color.setAlpha(60);
+
+    for (int y = 0; y < piece.shape.size(); ++y) {
+        for (int x = 0; x < piece.shape[y].size(); ++x) {
+            if (piece.shape[y][x] > 0) {
+                int col = piece.x + x;
+                int row = ghostY + y;
+                if (row >= 0) {
+                    int px = col * BLOCK_SIZE;
+                    int py = row * BLOCK_SIZE;
+
+                    painter.fillRect(px, py, BLOCK_SIZE, BLOCK_SIZE, color);
+                    painter.setPen(QPen(color, 1));
+                    painter.drawRect(px, py, BLOCK_SIZE - 1, BLOCK_SIZE - 1);
+                }
+            }
+        }
+    }
+}
+
 void TetrisBoard::drawGrid(QPainter &painter)
 {
     painter.setPen(QPen(QColor("#333"), 1));
@@ -192,7 +221,7 @@ void TetrisBoard::drawPauseOverlay(QPainter &painter)
     painter.setPen(Qt::white);
     QFont font("Arial", 24, QFont::Bold);
     painter.setFont(font);
-    painter.drawText(rect(), Qt::AlignCenter, "Paused\n\nPress P to Continue");
+    painter.drawText(rect(), Qt::AlignCenter, "Paused\n");
 }
 
 void TetrisBoard::drawStartOverlay(QPainter &painter)
@@ -227,18 +256,10 @@ void TetrisBoard::drawGameOverOverlay(QPainter &painter)
     painter.drawText(QRect(0, height() / 2 - 60, width(), 50),
                      Qt::AlignHCenter, "GAME OVER");
 
-    // Final score
-    painter.setPen(Qt::white);
-    QFont scoreFont("Arial", 16, QFont::Bold);
-    painter.setFont(scoreFont);
-    painter.drawText(QRect(0, height() / 2 - 10, width(), 30),
-                     Qt::AlignHCenter,
-                     QString("Score: %1").arg(m_game->score()));
-
     // Retry hint
     painter.setPen(QColor("#aaa"));
     QFont subFont("Arial", 12);
     painter.setFont(subFont);
-    painter.drawText(QRect(0, height() / 2 + 25, width(), 30),
+    painter.drawText(QRect(0, height() / 2 + 0, width(), 30),
                      Qt::AlignHCenter, "Press Retry to Play Again");
 }

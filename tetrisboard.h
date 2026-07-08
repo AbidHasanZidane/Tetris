@@ -38,6 +38,7 @@ private:
     void drawBlock(QPainter &painter, int col, int row, const QColor &color);
     void drawBoard(QPainter &painter);
     void drawPiece(QPainter &painter);
+    void drawGhostPiece(QPainter &painter);
     void drawGrid(QPainter &painter);
     void drawPauseOverlay(QPainter &painter);
     void drawStartOverlay(QPainter &painter);

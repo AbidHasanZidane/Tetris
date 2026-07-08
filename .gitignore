@@ -1,0 +1,23 @@
+# Qt Creator files
+*.pro.user
+*.qmake.stash
+*.qmake.cache
+
+# Build directories
+build/
+build-*/
+cmake-build-*/
+
+# Compiled files
+*.o
+*.obj
+*.exe
+*.dll
+*.so
+*.dylib
+
+# CMake files
+CMakeFiles/
+CMakeCache.txt
+cmake_install.cmake
+Makefile

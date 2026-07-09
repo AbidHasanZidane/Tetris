@@ -7,6 +7,14 @@
 
 class NextPieceWidget;
 
+struct FallingPiece {
+    QVector<QVector<int>> shape;
+    qreal x = 0;
+    qreal y = 0;
+    int colorIndex = 0;
+    qreal speed = 0.06;   // blocks per tick
+};
+
 class TetrisBoard : public QWidget
 {
     Q_OBJECT
@@ -42,10 +50,16 @@ private:
     void drawPauseOverlay(QPainter &painter);
     void drawStartOverlay(QPainter &painter);
     void drawGameOverOverlay(QPainter &painter);
+    void updateFallingPieces();
+    void drawFallingPieces(QPainter &painter);
 
     TetrisGame *m_game;
     NextPieceWidget *m_preview;
     QTimer *m_timer;
+    QTimer *m_fadeTimer;
+    qreal m_fadeAngle = 0;
+    QVector<FallingPiece> m_fallingPieces;
+    int m_spawnTimer = 0;
 };
 
 #endif // TETRISBOARD_H

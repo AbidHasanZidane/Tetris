@@ -61,15 +61,6 @@ int main(int argc, char *argv[])
             background-color: #555;
             color: #999;
         }
-        QPushButton#leaderboardBtn {
-            background-color: #1565c0;
-        }
-        QPushButton#leaderboardBtn:hover {
-            background-color: #1976d2;
-        }
-        QPushButton#leaderboardBtn:pressed {
-            background-color: #0d47a1;
-        }
     )");
 
     // ------------------------------------------------------------------
@@ -157,28 +148,6 @@ int main(int argc, char *argv[])
     QPushButton *helpBtn = new QPushButton("How to Play");
     helpBtn->setObjectName("helpBtn");
     helpBtn->setFocusPolicy(Qt::NoFocus);
-    helpBtn->setStyleSheet(R"(
-        QPushButton#helpBtn {
-            background-color: #1565c0;
-            color: white;
-            border: none;
-            border-radius: 4px;
-            padding: 6px 10px;
-            font-size: 12px;
-            font-weight: bold;
-            min-width: 100px;
-        }
-        QPushButton#helpBtn:hover {
-            background-color: #1976d2;
-        }
-        QPushButton#helpBtn:pressed {
-            background-color: #0d47a1;
-        }
-        QPushButton#helpBtn:disabled {
-            background-color: #555;
-            color: #999;
-        }
-    )");
 
     QLabel *controlsLabel = new QLabel(
         QString::fromUtf8("← →   Move\n"
@@ -239,24 +208,10 @@ int main(int argc, char *argv[])
         extreme = !extreme;
         if (extreme) {
             modeBtn->setText("Mode: Extreme");
-            modeBtn->setStyleSheet(R"(
-                QPushButton { background-color: #333; color: #FF0D72; border: 1px solid #555;
-                    border-radius: 4px; padding: 6px 10px; font-size: 13px; font-weight: bold;
-                    min-width: 100px; }
-                QPushButton:hover { background-color: #444; }
-                QPushButton:disabled { background-color: #555; color: #999; }
-            )");
             game->setInitialSpeed(EXTREME_INITIAL_SPEED);
             game->setExtremeMode(true);
         } else {
             modeBtn->setText("Mode: Regular");
-            modeBtn->setStyleSheet(R"(
-                QPushButton { background-color: #333; color: #4caf50; border: 1px solid #555;
-                    border-radius: 4px; padding: 6px 10px; font-size: 13px; font-weight: bold;
-                    min-width: 100px; }
-                QPushButton:hover { background-color: #444; }
-                QPushButton:disabled { background-color: #555; color: #999; }
-            )");
             game->setInitialSpeed(REGULAR_INITIAL_SPEED);
             game->setExtremeMode(false);
         }
@@ -268,22 +223,8 @@ int main(int argc, char *argv[])
         muted = !muted;
         if (muted) {
             soundBtn->setText("Sound: OFF");
-            soundBtn->setStyleSheet(R"(
-                QPushButton { background-color: #333; color: #888; border: 1px solid #555;
-                    border-radius: 4px; padding: 6px 10px; font-size: 13px; font-weight: bold;
-                    min-width: 100px; }
-                QPushButton:hover { background-color: #444; }
-                QPushButton:disabled { background-color: #555; color: #999; }
-            )");
         } else {
             soundBtn->setText("Sound: ON");
-            soundBtn->setStyleSheet(R"(
-                QPushButton { background-color: #333; color: #4caf50; border: 1px solid #555;
-                    border-radius: 4px; padding: 6px 10px; font-size: 13px; font-weight: bold;
-                    min-width: 100px; }
-                QPushButton:hover { background-color: #444; }
-                QPushButton:disabled { background-color: #555; color: #999; }
-            )");
         }
     });
 

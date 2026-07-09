@@ -3,6 +3,8 @@
 #include <QPainter>
 #include <QKeyEvent>
 #include <QFont>
+#include <QRandomGenerator>
+#include <cmath>
 
 TetrisBoard::TetrisBoard(TetrisGame *game, NextPieceWidget *preview,
                          QWidget *parent)
@@ -10,6 +12,8 @@ TetrisBoard::TetrisBoard(TetrisGame *game, NextPieceWidget *preview,
     , m_game(game)
     , m_preview(preview)
     , m_timer(new QTimer(this))
+    , m_fadeTimer(new QTimer(this))
+    , m_fadeAngle(0)
 {
     setFixedSize(COLS * BLOCK_SIZE + 2 * BOARD_MARGIN,
                  ROWS * BLOCK_SIZE + 2 * BOARD_MARGIN);
@@ -26,10 +30,33 @@ TetrisBoard::TetrisBoard(TetrisGame *game, NextPieceWidget *preview,
 
     // Timer drives the gravity ticks
     connect(m_timer, &QTimer::timeout, this, &TetrisBoard::onTick);
+
+    // Fade timer for the "Press Start Game" text + falling background pieces
+    connect(m_fadeTimer, &QTimer::timeout, this, [this]() {
+        m_fadeAngle = std::fmod(m_fadeAngle + 3.6, 360.0);
+        updateFallingPieces();
+        update();
+    });
+    m_fadeTimer->start(40);  //~4 seconds
+
+    // Seed initial falling pieces at various heights so the start screen
+    // has visible activity right away.
+    for (int i = 0; i < 5; ++i) {
+        FallingPiece fp;
+        int idx = QRandomGenerator::global()->bounded(1, 8);
+        fp.shape      = SHAPES[idx];
+        fp.colorIndex = idx;
+        fp.x          = QRandomGenerator::global()->bounded(0, COLS - int(fp.shape[0].size()) + 1);
+        fp.y          = QRandomGenerator::global()->bounded(0, ROWS);   // anywhere on the board
+        fp.speed      = 0.04 + QRandomGenerator::global()->bounded(0.07);
+        m_fallingPieces.append(fp);
+    }
 }
 
 void TetrisBoard::startGame()
 {
+    m_fadeTimer->stop();
+    m_fallingPieces.clear();
     m_game->start();
     if (m_preview) m_preview->setPiece(m_game->nextPiece());
     m_timer->start(m_game->dropSpeed());
@@ -116,6 +143,9 @@ void TetrisBoard::paintEvent(QPaintEvent * /*event*/)
 
     drawGrid(painter);
     drawBoard(painter);
+
+    if (!m_game->isRunning() && !m_game->isGameOver())
+        drawFallingPieces(painter);
 
     if (!m_game->isGameOver() && m_game->isRunning()) {
         if (!m_game->isExtremeMode())
@@ -267,12 +297,17 @@ void TetrisBoard::drawStartOverlay(QPainter &painter)
     painter.drawText(QRect(0, height() / 2 - 60, width(), 50),
                      Qt::AlignHCenter, "TETRIS");
 
-    // Subtitle
-    painter.setPen(QColor("#aaa"));
-    QFont subFont("Arial", 12);
-    painter.setFont(subFont);
-    painter.drawText(QRect(0, height() / 2 - 10, width(), 30),
-                     Qt::AlignHCenter, "Press Start Game to Play");
+    // Fading subtitle (sine-wave opacity)
+    {
+        qreal opacity = (std::sin(m_fadeAngle * M_PI / 180.0) + 1.0) / 2.0;
+        painter.setOpacity(opacity);
+        painter.setPen(QColor("#aaa"));
+        QFont subFont("Arial", 12);
+        painter.setFont(subFont);
+        painter.drawText(QRect(0, height() / 2 - 10, width(), 30),
+                         Qt::AlignHCenter, "Press Start Game to Play");
+        painter.setOpacity(1.0);
+    }
 }
 
 void TetrisBoard::drawGameOverOverlay(QPainter &painter)
@@ -293,4 +328,64 @@ void TetrisBoard::drawGameOverOverlay(QPainter &painter)
     painter.setFont(subFont);
     painter.drawText(QRect(0, height() / 2 + 0, width(), 30),
                      Qt::AlignHCenter, "Press Retry to Play Again");
+}
+
+// ---------------------------------------------------------------------------
+// Falling ghost pieces (start-screen background animation)
+// ---------------------------------------------------------------------------
+
+void TetrisBoard::updateFallingPieces()
+{
+    // Move existing pieces down
+    for (int i = m_fallingPieces.size() - 1; i >= 0; --i) {
+        m_fallingPieces[i].y += m_fallingPieces[i].speed;
+        // Remove if fully off the bottom of the board
+        if (m_fallingPieces[i].y > ROWS + 2)
+            m_fallingPieces.removeAt(i);
+    }
+
+    // Spawn new pieces periodically
+    constexpr int SPAWN_TICKS = 20;      // ~0.8 seconds at 40ms
+    constexpr int MAX_PIECES   = 6;
+
+    m_spawnTimer++;
+    if (m_spawnTimer >= SPAWN_TICKS && m_fallingPieces.size() < MAX_PIECES) {
+        // Randomise next interval to avoid regular cadence
+        m_spawnTimer = 0;
+        m_spawnTimer -= QRandomGenerator::global()->bounded(0, 8);   // jitter
+
+        FallingPiece fp;
+        int idx = QRandomGenerator::global()->bounded(1, 8);   // 1..7
+        fp.shape      = SHAPES[idx];
+        fp.colorIndex = idx;
+        fp.x          = QRandomGenerator::global()->bounded(0, COLS - int(fp.shape[0].size()) + 1);
+        // Start above the board or at a random visible row
+        fp.y          = QRandomGenerator::global()->bounded(-int(fp.shape.size()), ROWS / 2);
+        fp.speed      = 0.04 + QRandomGenerator::global()->bounded(0.07);   // 0.04 – 0.11
+
+        m_fallingPieces.append(fp);
+    }
+}
+
+void TetrisBoard::drawFallingPieces(QPainter &painter)
+{
+    painter.save();
+    painter.setOpacity(0.60);   // ghostly appearance
+
+    for (const auto &fp : m_fallingPieces) {
+        const QColor color = COLORS[fp.colorIndex];
+        for (int row = 0; row < fp.shape.size(); ++row) {
+            for (int col = 0; col < fp.shape[row].size(); ++col) {
+                if (fp.shape[row][col] > 0) {
+                    int px = static_cast<int>((fp.x + col) * BLOCK_SIZE);
+                    int py = static_cast<int>((fp.y + row) * BLOCK_SIZE);
+                    painter.fillRect(px, py, BLOCK_SIZE, BLOCK_SIZE, color);
+                    painter.setPen(QPen(color, 1));
+                    painter.drawRect(px, py, BLOCK_SIZE - 1, BLOCK_SIZE - 1);
+                }
+            }
+        }
+    }
+
+    painter.restore();
 }

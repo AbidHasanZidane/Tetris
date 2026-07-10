@@ -2,10 +2,12 @@
 *.pro.user
 *.qmake.stash
 *.qmake.cache
+CMakeLists.txt.user
 
 # Build directories
 build/
 build-*/
+.qtc_clangd-*/
 cmake-build-*/
 
 # Compiled files
@@ -21,3 +23,9 @@ CMakeFiles/
 CMakeCache.txt
 cmake_install.cmake
 Makefile
+
+# Audio files (user-provided)
+sounds/*.mp3
+sounds/*.wav
+sounds/*.ogg
+!sounds/README.txt

@@ -160,6 +160,7 @@ void TetrisGame::softDrop()
     if (isValidMove(test)) {
         m_currentPiece.y++;
         emit stateChanged();
+        emit softDropDone();
     }
     // If it can't move down, we don't auto-lock here — the next tick handles it.
 }
@@ -181,6 +182,7 @@ void TetrisGame::hardDrop()
     lockPiece();
     handlePostLock();
     emit stateChanged();
+    emit hardDropDone();
 }
 
 int TetrisGame::ghostY() const
@@ -262,6 +264,8 @@ void TetrisGame::updateScoreAndSpeed(int cleared)
 void TetrisGame::handlePostLock()
 {
     int cleared = clearLines();
+    if (cleared > 0)
+        emit rowsDestroyed(cleared);
     updateScoreAndSpeed(cleared);
 
     // Advance to next piece

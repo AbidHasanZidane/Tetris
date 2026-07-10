@@ -1,4 +1,4 @@
-QT       += core gui widgets sql
+QT       += core gui widgets sql multimedia
 
 greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
 
@@ -15,7 +15,8 @@ SOURCES += \
     tetrispiece.cpp \
     nextpiecewidget.cpp \
     scoredatabase.cpp \
-    leaderboarddialog.cpp
+    leaderboarddialog.cpp \
+    AudioManager.cpp
 
 HEADERS += \
     constants.h \
@@ -24,7 +25,8 @@ HEADERS += \
     tetrispiece.h \
     nextpiecewidget.h \
     scoredatabase.h \
-    leaderboarddialog.h
+    leaderboarddialog.h \
+    AudioManager.h
 
 # Default rules for deployment.
 qnx: target.path = /tmp/$${TARGET}/bin

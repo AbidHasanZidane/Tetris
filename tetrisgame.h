@@ -52,6 +52,9 @@ signals:
     void gameOver(int finalScore);
     void scoreChanged(int score);
     void nextPieceChanged();
+    void softDropDone();             // emitted on successful soft-drop
+    void hardDropDone();             // emitted after hard-drop locks
+    void rowsDestroyed(int count);   // emitted when rows are cleared
 
 private:
     Board createEmptyBoard();

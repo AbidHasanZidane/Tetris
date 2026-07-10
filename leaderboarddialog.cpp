@@ -4,32 +4,57 @@
 #include <QTableWidget>
 #include <QHeaderView>
 #include <QVBoxLayout>
+#include <QHBoxLayout>
 #include <QLabel>
+#include <QPushButton>
 #include <QFont>
-#include <QDateTime>
 
 LeaderboardDialog::LeaderboardDialog(ScoreDatabase *db, QWidget *parent)
-    : QDialog(parent)
+    : QWidget(parent)
     , m_db(db)
 {
-    setWindowTitle("Leaderboard");
-    setFixedSize(480, 420);
     setStyleSheet("background-color: #1e1e1e;");
 
     auto *layout = new QVBoxLayout(this);
-    layout->setContentsMargins(16, 16, 16, 16);
-    layout->setSpacing(12);
+    layout->setContentsMargins(0, 0, 0, 0);
+    layout->setSpacing(10);
+    layout->addSpacing(20);   // align with board / next-piece group
 
-    // Title
-    auto *title = new QLabel("Top Scores");
-    title->setAlignment(Qt::AlignCenter);
-    title->setFont(QFont("Arial", 18, QFont::Bold));
-    title->setStyleSheet("color: #4caf50;");
-    layout->addWidget(title);
+    // Title row: "Top Scores" label + Back button
+    auto *titleRow = new QHBoxLayout;
+
+    auto *title = new QLabel("");
+    title->setFont(QFont("Arial", 16, QFont::Bold));
+    title->setStyleSheet("color: #4caf50; background: transparent;");
+
+    auto *backBtn = new QPushButton("X");
+    backBtn->setFocusPolicy(Qt::NoFocus);
+    backBtn->setStyleSheet(R"(
+        QPushButton {
+            background: transparent;
+            color: #4caf50;
+            border: none;
+            font-size: 16px;
+            font-weight: bold;
+            padding: 0px;
+            min-width: 20px;
+            max-width: 20px;
+            max-height: 20px;
+        }
+        QPushButton:hover {
+            color: #66bb6a;
+        }
+    )");
+    connect(backBtn, &QPushButton::clicked, this, &LeaderboardDialog::backClicked);
+
+    titleRow->addWidget(title);
+    titleRow->addStretch();
+    titleRow->addWidget(backBtn);
+    layout->addLayout(titleRow);
 
     // Table
-    m_table = new QTableWidget(0, 4, this);
-    m_table->setHorizontalHeaderLabels({"#", "Score", "Lines", "Date"});
+    m_table = new QTableWidget(0, 3, this);
+    m_table->setHorizontalHeaderLabels({"#", "Score", "Lines"});
     m_table->horizontalHeader()->setStretchLastSection(true);
     m_table->horizontalHeader()->setSectionResizeMode(0, QHeaderView::ResizeToContents);
     m_table->horizontalHeader()->setSectionResizeMode(1, QHeaderView::Stretch);
@@ -38,6 +63,8 @@ LeaderboardDialog::LeaderboardDialog(ScoreDatabase *db, QWidget *parent)
     m_table->setEditTriggers(QAbstractItemView::NoEditTriggers);
     m_table->setSelectionMode(QAbstractItemView::NoSelection);
     m_table->setFocusPolicy(Qt::NoFocus);
+    m_table->setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
+    m_table->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
     m_table->setAlternatingRowColors(true);
     m_table->setStyleSheet(R"(
         QTableWidget {
@@ -45,7 +72,7 @@ LeaderboardDialog::LeaderboardDialog(ScoreDatabase *db, QWidget *parent)
             background-color: #2a2a2a;
             border: 1px solid #444;
             gridline-color: #444;
-            font-size: 13px;
+            font-size: 14px;
         }
         QTableWidget::item {
             padding: 4px 8px;
@@ -68,7 +95,7 @@ LeaderboardDialog::LeaderboardDialog(ScoreDatabase *db, QWidget *parent)
 
 void LeaderboardDialog::refresh()
 {
-    auto scores = m_db->topScores(50);
+    auto scores = m_db->topScores(15);
     m_table->setRowCount(scores.size());
 
     for (int i = 0; i < scores.size(); ++i) {
@@ -85,10 +112,5 @@ void LeaderboardDialog::refresh()
         auto *linesItem = new QTableWidgetItem(QString::number(entry.lines));
         linesItem->setTextAlignment(Qt::AlignCenter);
         m_table->setItem(i, 2, linesItem);
-
-        QString dateStr = entry.date.toString("yyyy-MM-dd  hh:mm");
-        auto *dateItem = new QTableWidgetItem(dateStr);
-        dateItem->setTextAlignment(Qt::AlignCenter);
-        m_table->setItem(i, 3, dateItem);
     }
 }

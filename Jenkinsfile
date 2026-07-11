@@ -14,17 +14,29 @@ pipeline {
         stage('Checkout') {
             steps {
                 checkout scm
-                sh 'echo "=== git ls-files ===" && git ls-files *.cpp *.h'
-                sh 'echo "=== pwd ===" && pwd'
-                sh 'echo "=== ls ===" && ls -la'
+            }
+        }
+
+        stage('Configure') {
+            steps {
+                sh 'cmake -B build -DCMAKE_BUILD_TYPE=Release -DBUILD_TESTS=OFF'
+            }
+        }
+
+        stage('Build') {
+            steps {
+                sh 'cmake --build build --parallel'
             }
         }
 
     }
 
     post {
-        always {
-            echo 'Pipeline finished.'
+        success {
+            echo 'Build succeeded.'
+        }
+        failure {
+            echo 'Build failed.'
         }
     }
 }

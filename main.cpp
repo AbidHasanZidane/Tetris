@@ -153,6 +153,9 @@ int main(int argc, char *argv[])
     // Next piece group
     QGroupBox *nextGroup = new QGroupBox("Next Piece");
     nextGroup->setStyleSheet("QGroupBox::title { color: #4caf50; }");
+    nextGroup->setStyleSheet(
+        "QGroupBox { margin-left: 10px; margin-right: 2px; }"
+        "QGroupBox::title { color: #4caf50; }");
     QVBoxLayout *nextLayout = new QVBoxLayout(nextGroup);
     nextLayout->addWidget(preview, 0, Qt::AlignCenter);
     infoLayout->addWidget(nextGroup);
@@ -160,10 +163,13 @@ int main(int argc, char *argv[])
     // Score
     QGroupBox *scoreGroup = new QGroupBox("Score");
     scoreGroup->setStyleSheet("QGroupBox::title { color: #4caf50; }");
+    scoreGroup->setStyleSheet(
+        "QGroupBox { margin-left: 10px; margin-right: 2px; }"
+        "QGroupBox::title { color: #4caf50; }");
     QVBoxLayout *scoreLayout = new QVBoxLayout(scoreGroup);
     QLabel *scoreLabel = new QLabel("0");
     scoreLabel->setFont(QFont("Courier New", 28, QFont::Black));
-    scoreLabel->setStyleSheet("color: #ccc;");
+    scoreLabel->setStyleSheet("color: #888;");
     scoreLabel->setAlignment(Qt::AlignCenter);
     scoreLayout->addWidget(scoreLabel);
     infoLayout->addWidget(scoreGroup);
@@ -173,7 +179,7 @@ int main(int argc, char *argv[])
     startBtn->setFocusPolicy(Qt::NoFocus);
     infoLayout->addWidget(startBtn);
 
-    // --- Mode toggle (Regular / Extreme) ---
+    // --- Mode toggle (Regular / Extreme)
     QPushButton *modeBtn = new QPushButton("Mode: Regular");
     modeBtn->setObjectName("modeBtn");
     modeBtn->setFocusPolicy(Qt::NoFocus);

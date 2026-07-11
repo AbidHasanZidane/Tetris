@@ -9,7 +9,7 @@
 // ---------------------------------------------------------------------------
 static const QString BG_MUSIC_FILE   = QStringLiteral("bg_music.mp3");
 static const QString SOFT_DROP_FILE  = QStringLiteral("soft_drop.wav");
-static const QString HARD_DROP_FILE  = QStringLiteral("hard_drop.wav");
+static const QString HARD_DROP_FILE  = QStringLiteral("hard_drop.mp3");
 static const QString ROW_CLEAR_FILE  = QStringLiteral("row_clear.wav");
 static const QString GAME_OVER_FILE  = QStringLiteral("game_over.wav");
 
